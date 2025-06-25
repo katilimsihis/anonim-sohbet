@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anonim Sohbet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1740&q=80');
+      background-size: cover;
+      background-position: center;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 28px;
+      color: #333;
+    }
+
+    .emoji {
+      font-size: 38px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #ff4b5c;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #e84150;
+    }
+
+    #messages {
+      height: 180px;
+      overflow-y: auto;
+      background: #f1f1f1;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    input {
+      width: calc(100% - 90px);
+      padding: 10px;
+      margin-right: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #send {
+      background-color: #00c853;
+    }
+
+    #send:hover {
+      background-color: #00a045;
+    }
+
+    @media screen and (max-width: 600px) {
+      input {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      #send {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="genderSelect">
+    <div class="emoji">🎭</div>
+    <h2>Anonim Sohbet</h2>
+    <p>Cinsiyetini Seç:</p>
+    <button onclick="setGender('male')">Erkek 👨</button>
+    <button onclick="setGender('female')">Kadın 👩</button>
+  </div>
+
+  <div class="container" id="status" style="display:none;">Eşleşme bekleniyor... 🎲</div>
+
+  <div class="container" id="chat" style="display:none;">
+    <h3>Sohbet Başladı 💬</h3>
+    <div id="messages"></div>
+    <input id="input" placeholder="Mesaj yaz..." />
+    <button id="send">Gönder 🚀</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const status = document.getElementById('status');
+    const genderSelect = document.getElementById('genderSelect');
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const send = document.getElementById('send');
+    const messages = document.getElementById('messages');
+
+    function setGender(gender) {
+      socket.emit('setGender', gender);
+      genderSelect.style.display = 'none';
+      status.style.display = 'block';
+    }
+
+    socket.on('waiting', () => {
+      status.innerText = 'Bekleniyor... Eş aranıyor 👀';
+    });
+
+    socket.on('match', () => {
+      status.style.display = 'none';
+      chat.style.display = 'block';
+    });
+
+    socket.on('message', msg => {
+      const div = document.createElement('div');
+      div.innerText = "Anonim: " + msg;
+      messages.appendChild(div);
+    });
+
+    socket.on('partner_disconnected', () => {
+      alert('Karşı taraf bağlantıyı kesti 😢');
+      window.location.reload();
+    });
+
+    send.onclick = () => {
+      const msg = input.value;
+      if (msg) {
+        socket.emit('message', msg);
+        const div = document.createElement('div');
+        div.innerText = "Sen: " + msg;
+        messages.appendChild(div);
+        input.value = '';
+      }
+    };
+  </script>
+</body>
+</html>
