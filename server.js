@@ -44,6 +44,18 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('typing', () => {
+  if (socket.partner) {
+    socket.partner.emit('typing');
+  }
+});
+
+socket.on('stop_typing', () => {
+  if (socket.partner) {
+    socket.partner.emit('stop_typing');
+  }
+});
+
   socket.on('disconnect', () => {
     if (socket.partner) {
       socket.partner.emit('partner_disconnected');
